@@ -88,6 +88,12 @@ public:
     /// Set depth type
     void setDepthType(DepthMaskType value) { depthType = value; }
 
+    /// Depth function for depth testing
+    DepthFunctionType getDepthFunc() const { return depthFunc; }
+
+    /// Set depth function
+    void setDepthFunc(DepthFunctionType value) { depthFunc = value; }
+
     /// Uses 3D depth mode
     bool getIs3D() const { return is3D; }
 
@@ -239,6 +245,7 @@ protected:
     DrawPriority drawPriority = 0;
     int32_t subLayerIndex = 0;
     DepthMaskType depthType = DepthMaskType::ReadOnly;
+    DepthFunctionType depthFunc = DepthFunctionType::LessEqual;
     gfx::ShaderProgramBasePtr shader;
     UniqueDrawable currentDrawable;
     std::vector<UniqueDrawable> drawables;

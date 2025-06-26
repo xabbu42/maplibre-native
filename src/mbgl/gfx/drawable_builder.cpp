@@ -59,6 +59,7 @@ void DrawableBuilder::flush(gfx::Context& context) {
         draw->setSubLayerIndex(subLayerIndex);
         draw->setEnableDepth(enableDepth);
         draw->setDepthType(depthType);
+        draw->setDepthFunc(depthFunc);
         draw->setIs3D(is3D);
         draw->setColorMode(impl->colorMode);
         draw->setCullFaceMode(impl->cullFaceMode);

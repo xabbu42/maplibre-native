@@ -265,13 +265,23 @@ void RenderLineLayer::update(gfx::ShaderRegistry& shaders,
         return false;
     });
 
+    // Check for nooverdraw metadata property
+    bool nooverdraw = baseImpl->nooverdraw;
+
     auto createLineBuilder = [&](const std::string& name,
                                  gfx::ShaderPtr shader) -> std::unique_ptr<gfx::DrawableBuilder> {
         std::unique_ptr<gfx::DrawableBuilder> builder = context.createDrawableBuilder(name);
         builder->setShader(std::static_pointer_cast<gfx::ShaderProgramBase>(shader));
         builder->setRenderPass(renderPass);
         builder->setSubLayerIndex(0);
-        builder->setDepthType(gfx::DepthMaskType::ReadOnly);
+
+        if (nooverdraw) {
+            builder->setDepthType(gfx::DepthMaskType::ReadWrite);
+            builder->setDepthFunc(gfx::DepthFunctionType::Less);
+        } else {
+            builder->setDepthType(gfx::DepthMaskType::ReadOnly);
+        }
+
         builder->setColorMode(renderPass == RenderPass::Translucent ? gfx::ColorMode::alphaBlended()
                                                                     : gfx::ColorMode::unblended());
         builder->setCullFaceMode(gfx::CullFaceMode::disabled());

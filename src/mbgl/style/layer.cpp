@@ -157,6 +157,22 @@ std::optional<conversion::Error> Layer::setProperty(const std::string& name, con
     using namespace conversion;
     std::optional<Error> error = setPropertyInternal(name, value);
     if (!error) return error; // Successfully set by the derived class implementation.
+
+    if (name == "metadata") {
+        if (isObject(value)) {
+            // Parse metadata object for nooverdraw property
+            if (auto nooverDrawValue = objectMember(value, "nooverdraw")) {
+                if (auto nooverDrawBool = toBool(*nooverDrawValue)) {
+                    auto impl_ = mutableBaseImpl();
+                    impl_->nooverdraw = *nooverDrawBool;
+                    baseImpl = std::move(impl_);
+                    Log::Info(Event::General, "Layer '" + getID() + "': nooverdraw set to " + (*nooverDrawBool ? "true" : "false"));
+                }
+            }
+        }
+        return std::nullopt; // Successfully handled metadata
+    }
+
     if (name == "visibility") return setVisibility(value);
     if (name == "minzoom") {
         if (auto zoom = convert<float>(value, *error)) {

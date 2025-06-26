@@ -69,6 +69,7 @@ std::optional<std::unique_ptr<Layer>> Converter<std::unique_ptr<Layer>>::operato
     if (!setObjectMember(layer, value, "minzoom", error)) return std::nullopt;
     if (!setObjectMember(layer, value, "maxzoom", error)) return std::nullopt;
     if (!setObjectMember(layer, value, "filter", error)) return std::nullopt;
+    if (!setObjectMember(layer, value, "metadata", error)) return std::nullopt;
     if (layer->getTypeInfo()->source == LayerTypeInfo::Source::Required) {
         if (!setObjectMember(layer, value, "source-layer", error)) return std::nullopt;
     }

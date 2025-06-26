@@ -247,7 +247,7 @@ void Drawable::draw(PaintParameters& parameters) const {
                 newStencilMode = parameters.stencilModeForClipping(tileID->toUnwrapped());
             }
             const auto depthMode = getEnableDepth()
-                                       ? parameters.depthModeForSublayer(getSubLayerIndex(), getDepthType())
+                                       ? parameters.depthModeForSublayer(getSubLayerIndex(), getDepthType(), getDepthFunc())
                                        : gfx::DepthMode::disabled();
             const auto stencilMode = enableStencil ? parameters.stencilModeForClipping(tileID->toUnwrapped())
                                                    : gfx::StencilMode::disabled();

@@ -88,6 +88,7 @@ public:
     gfx::ShaderRegistry& shaders;
 
     gfx::DepthMode depthModeForSublayer(uint8_t n, gfx::DepthMaskType) const;
+    gfx::DepthMode depthModeForSublayer(uint8_t n, gfx::DepthMaskType, gfx::DepthFunctionType) const;
     gfx::DepthMode depthModeFor3D() const;
     gfx::ColorMode colorModeForRenderPass() const;
 

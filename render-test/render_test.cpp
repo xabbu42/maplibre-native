@@ -59,7 +59,7 @@ void operator delete(void* ptr, size_t) noexcept {
 
 namespace {
 
-using ArgumentsTuple = std::tuple<bool, bool, bool, uint32_t, std::string, TestRunner::UpdateResults, std::string>;
+using ArgumentsTuple = std::tuple<bool, bool, bool, uint32_t, std::string, TestRunner::UpdateResults, std::string, uint32_t>;
 ArgumentsTuple parseArguments(int argc, char** argv) {
     const static std::unordered_map<std::string, TestRunner::UpdateResults> updateResultsFlags = {
         {"default", TestRunner::UpdateResults::DEFAULT},
@@ -79,6 +79,7 @@ ArgumentsTuple parseArguments(int argc, char** argv) {
     args::ValueFlag<std::string> testPathValue(
         argumentParser, "manifestPath", "Test manifest file path", {'p', "manifestPath"}, args::Options::Required);
     args::ValueFlag<std::string> testFilterValue(argumentParser, "filter", "Test filter regex", {'f', "filter"});
+    args::ValueFlag<uint32_t> repeatValue(argumentParser, "repeat", "Number of times to repeat each test with the same map instance", {"repeat"});
     args::MapFlag<std::string, TestRunner::UpdateResults> testUpdateResultsValue(
         argumentParser,
         "update",
@@ -121,6 +122,7 @@ ArgumentsTuple parseArguments(int argc, char** argv) {
     const auto shuffle = shuffleFlag ? args::get(shuffleFlag) : false;
     const auto online = onlineFlag ? args::get(onlineFlag) : false;
     const auto seed = seedValue ? args::get(seedValue) : 1u;
+    const auto repeat = repeatValue ? args::get(repeatValue) : 1u;
     TestRunner::UpdateResults updateResults = testUpdateResultsValue ? args::get(testUpdateResultsValue)
                                                                      : TestRunner::UpdateResults::NO;
     return ArgumentsTuple{recycleMapFlag ? args::get(recycleMapFlag) : false,
@@ -129,7 +131,8 @@ ArgumentsTuple parseArguments(int argc, char** argv) {
                           seed,
                           manifestPath.generic_string(),
                           updateResults,
-                          std::move(testFilter)};
+                          std::move(testFilter),
+                          repeat};
 }
 } // namespace
 namespace mbgl {
@@ -142,11 +145,12 @@ int runRenderTests(int argc, char** argv, std::function<void()> testStatus) {
     uint32_t seed;
     std::string manifestPath;
     std::string testFilter;
+    uint32_t repeat;
 
     Log::useLogThread(false);
     TestRunner::UpdateResults updateResults;
 
-    std::tie(recycleMap, shuffle, online, seed, manifestPath, updateResults, testFilter) = parseArguments(argc, argv);
+    std::tie(recycleMap, shuffle, online, seed, manifestPath, updateResults, testFilter, repeat) = parseArguments(argc, argv);
 
     ProxyFileSource::setOffline(!online);
 
@@ -211,7 +215,20 @@ int runRenderTests(int argc, char** argv, std::function<void()> testStatus) {
             metadata.metricsErrored++;
             metadata.renderErrored++;
         } else {
-            runner.run(metadata);
+            // Run the test multiple times if repeat is specified
+            for (uint32_t i = 0; i < repeat; ++i) {
+                if (repeat > 1) {
+                    printf("Running %s (iteration %u/%u)\n", id.c_str(), i + 1, repeat);
+                }
+                runner.run(metadata);
+                
+                // Only reset the runner between iterations if recycleMap is false
+                // When repeat > 1, we want to keep the same map instance across iterations
+                if (i < repeat - 1 && !recycleMap) {
+                    // Don't reset between iterations to maintain the same map instance
+                    // This is the key behavior for the repeat mode
+                }
+            }
         }
 
         bool errored = metadata.metricsErrored || metadata.renderErrored || metadata.labelCutOffFound;

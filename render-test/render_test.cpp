@@ -223,10 +223,8 @@ int runRenderTests(int argc, char** argv, std::function<void()> testStatus) {
                 runner.run(metadata);
                 
                 // Only reset the runner between iterations if recycleMap is false
-                // When repeat > 1, we want to keep the same map instance across iterations
                 if (i < repeat - 1 && !recycleMap) {
-                    // Don't reset between iterations to maintain the same map instance
-                    // This is the key behavior for the repeat mode
+                    runner.reset();
                 }
             }
         }

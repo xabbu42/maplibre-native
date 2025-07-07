@@ -211,26 +211,27 @@ int runRenderTests(int argc, char** argv, std::function<void()> testStatus) {
             }
         }
 
+        bool errored = false;
+        bool passed = true;
         if (metadata.document.ObjectEmpty()) {
             metadata.metricsErrored++;
             metadata.renderErrored++;
         } else {
             // Run the test multiple times if repeat is specified
-            for (uint32_t i = 0; i < repeat; ++i) {
+            for (uint32_t i = 0; i < repeat && passed; ++i) {
                 if (repeat > 1) {
                     printf("Running %s (iteration %u/%u)\n", id.c_str(), i + 1, repeat);
                 }
                 runner.run(metadata);
-                
+                errored = metadata.metricsErrored || metadata.renderErrored || metadata.labelCutOffFound;
+                passed = !errored && !metadata.metricsFailed && !metadata.renderFailed;
+
                 // Only reset the runner between iterations if recycleMap is false
                 if (i < repeat - 1 && !recycleMap) {
                     runner.reset();
                 }
             }
         }
-
-        bool errored = metadata.metricsErrored || metadata.renderErrored || metadata.labelCutOffFound;
-        bool passed = !errored && !metadata.metricsFailed && !metadata.renderFailed;
 
         if (shouldIgnore) {
             if (passed) {
